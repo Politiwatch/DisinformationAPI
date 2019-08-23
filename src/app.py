@@ -33,10 +33,10 @@ def __search(query, page=1):
             "text": value[1],
             "screen_name": value[2],
             "location": value[3],
-            "followers": value[4],
+            "followers": int(value[4]),
             "language": value[5],
-            "likes": value[6],
-            "retweets": value[7]
+            "likes": int(value[6]),
+            "retweets": int(value[7])
         } for value in values
     ]
     return {
@@ -70,4 +70,4 @@ def search():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run()
