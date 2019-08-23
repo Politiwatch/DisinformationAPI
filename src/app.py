@@ -52,7 +52,7 @@ def __search(query, page=1):
 
 def __tweet(id):
     cursor = ira_conn.cursor()
-    cursor.execute("SELECT tweetid, tweet_text, user_screen_name, user_reported_location, follower_count, tweet_language, like_count, retweet_count FROM tweets WHERE tweetid = %s;", (id,))
+    cursor.execute("SELECT tweetid, tweet_text, user_screen_name, user_reported_location, follower_count, tweet_language, like_count, retweet_count FROM search_index WHERE tweetid = %s;", (int(id),))
     value = cursor.fetchone()
     return {
         "id": value[0],
