@@ -6,8 +6,10 @@ import math
 import psycopg2
 import re
 import config
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 
 # Regex space escaper
 space_re = re.compile(r"(\w)\s(\w)")
@@ -23,7 +25,8 @@ def __search(query, page=1):
     processed_query = space_re.sub(r"\1 <-> \2", query)
     cursor = ira_conn.cursor()
     offset = (page - 1) * 100
-    cursor.execute("SELECT count(*) FROM search_index WHERE document @@ to_tsquery(%s);", (processed_query,))
+    cursor.execute(
+        "SELECT count(*) FROM search_index WHERE document @@ to_tsquery(%s);", (processed_query,))
     total = cursor.fetchone()[0]
     cursor.execute("SELECT tweetid, tweet_text, user_screen_name, user_reported_location, follower_count, tweet_language, like_count, retweet_count FROM search_index WHERE document @@ to_tsquery(%s) limit 100 offset %s;", (processed_query, offset))
     values = cursor.fetchall()
@@ -45,6 +48,23 @@ def __search(query, page=1):
         "pages": math.ceil(total / 100.0),
         "page": page
     }
+
+
+def __tweet(id):
+    cursor = ira_conn.cursor()
+    cursor.execute("SELECT tweetid, tweet_text, user_screen_name, user_reported_location, follower_count, tweet_language, like_count, retweet_count FROM tweets WHERE tweetid = %s;", (id,))
+    value = cursor.fetchone()
+    return {
+        "id": value[0],
+        "text": value[1],
+        "screen_name": value[2],
+        "location": value[3],
+        "followers": int(value[4]),
+        "language": value[5],
+        "likes": int(value[6]),
+        "retweets": int(value[7])
+    }
+
 
 def __total_ira():
     global cached_total
@@ -68,6 +88,11 @@ def search():
     page = int(request.args.get("page", 1))
     return jsonify(__search(query, page))
 
+
+@app.route('/v1/item', methods=['GET'])
+def item():
+    id = request.args.get("id")
+    return jsonify(__tweet(id))
 
 if __name__ == '__main__':
     app.run()
