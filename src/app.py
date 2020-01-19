@@ -30,9 +30,9 @@ def __search(query, page=1):
     processed_query = space_re.sub(r"\1 <-> \2", query)
     cursor = get_connection().cursor()
     offset = (page - 1) * 100
-    cursor.execute(
-        "SELECT count(*) FROM search_index WHERE document @@ to_tsquery(%s);", (processed_query,))
-    total = cursor.fetchone()[0]
+    # cursor.execute(
+    #     "SELECT count(*) FROM search_index WHERE document @@ to_tsquery(%s);", (processed_query,))
+    # total = cursor.fetchone()[0]
     cursor.execute("SELECT tweetid, tweet_text, user_screen_name, user_reported_location, follower_count, tweet_language, like_count, retweet_count FROM search_index WHERE document @@ to_tsquery(%s) limit 100 offset %s;", (processed_query, offset))
     values = cursor.fetchall()
     results = [
@@ -48,9 +48,7 @@ def __search(query, page=1):
         } for value in values
     ]
     return {
-        "total": total,
         "results": results,
-        "pages": math.ceil(total / 100.0),
         "page": page
     }
 
