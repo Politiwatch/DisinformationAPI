@@ -17,6 +17,7 @@ space_re = re.compile(r"(\w)\s(\w)")
 # Connect to database
 _connection = None
 def get_connection():
+    global _connection
     if _connection == None or _connection.closed != 0:
         _connection = psycopg2.connect(dbname=os.environ.get("PG_DBNAME"), user=os.environ.get(
         "PG_USERNAME"), password=os.environ.get("PG_PASSWORD"), host=os.environ.get("PG_HOST"))
