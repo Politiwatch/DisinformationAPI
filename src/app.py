@@ -15,15 +15,19 @@ CORS(app)
 space_re = re.compile(r"(\w)\s(\w)")
 
 # Connect to database
-ira_conn = psycopg2.connect(dbname=os.environ.get("PG_DBNAME"), user=os.environ.get(
-    "PG_USERNAME"), password=os.environ.get("PG_PASSWORD"), host=os.environ.get("PG_HOST"))
+_connection = None
+def get_connection():
+    if _connection == None or _connection.closed != 0:
+        _connection = psycopg2.connect(dbname=os.environ.get("PG_DBNAME"), user=os.environ.get(
+        "PG_USERNAME"), password=os.environ.get("PG_PASSWORD"), host=os.environ.get("PG_HOST"))
+    return _connection
 
 cached_total = None
 
 
 def __search(query, page=1):
     processed_query = space_re.sub(r"\1 <-> \2", query)
-    cursor = ira_conn.cursor()
+    cursor = get_connection().cursor()
     offset = (page - 1) * 100
     cursor.execute(
         "SELECT count(*) FROM search_index WHERE document @@ to_tsquery(%s);", (processed_query,))
@@ -51,7 +55,7 @@ def __search(query, page=1):
 
 
 def __tweet(id):
-    cursor = ira_conn.cursor()
+    cursor = get_connection().cursor()
     cursor.execute("SELECT tweetid, tweet_text, user_screen_name, user_reported_location, follower_count, tweet_language, like_count, retweet_count FROM tweets WHERE tweetid = %s LIMIT 1;", (int(id),))
     value = cursor.fetchone()
     return {
@@ -69,7 +73,7 @@ def __tweet(id):
 def __total_ira():
     global cached_total
     if cached_total == None:
-        cursor = ira_conn.cursor()
+        cursor = get_connection().cursor()
         cursor.execute("SELECT count(*) FROM tweets;")
         cached_total = cursor.fetchone()[0]
     return cached_total
