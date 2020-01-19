@@ -33,7 +33,7 @@ def __search(query, page=1):
     # cursor.execute(
     #     "SELECT count(*) FROM search_index WHERE document @@ to_tsquery(%s);", (processed_query,))
     # total = cursor.fetchone()[0]
-    cursor.execute("SELECT tweetid, tweet_text, user_screen_name, user_reported_location, follower_count, tweet_language, like_count, retweet_count FROM search_index ORDER BY tweetid ASC WHERE document @@ to_tsquery(%s) limit 100 offset %s;", (processed_query, offset))
+    cursor.execute("SELECT tweetid, tweet_text, user_screen_name, user_reported_location, follower_count, tweet_language, like_count, retweet_count FROM search_index WHERE document @@ to_tsquery(%s) ORDER BY tweetid LIMIT 100 OFFSET %s;", (processed_query, offset))
     values = cursor.fetchall()
     results = [
         {
